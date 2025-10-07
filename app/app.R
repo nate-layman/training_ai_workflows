@@ -154,19 +154,18 @@ ui <- fluidPage(
           });
         }
 
-        // Setup drag for top brick in stack (last one in DOM due to flex-reverse)
+        // Setup drag for ALL bricks in stack
         function setupStackDrag() {
           const stackBricks = document.querySelectorAll('.stack-area .brick');
-          if (stackBricks.length > 0) {
-            const topBrick = stackBricks[stackBricks.length - 1]; // Last brick is visually on top
-            topBrick.style.cursor = 'move';
-            topBrick.setAttribute('draggable', 'true');
-            topBrick.addEventListener('dragstart', function(e) {
+          stackBricks.forEach(function(brick) {
+            brick.style.cursor = 'move';
+            brick.setAttribute('draggable', 'true');
+            brick.addEventListener('dragstart', function(e) {
               e.dataTransfer.effectAllowed = 'move';
-              e.dataTransfer.setData('brick-number', topBrick.getAttribute('data-number'));
+              e.dataTransfer.setData('brick-number', brick.getAttribute('data-number'));
               e.dataTransfer.setData('source', 'stack');
             });
-          }
+          });
         }
 
         // Only add drop handler to stack once
@@ -814,17 +813,22 @@ server <- function(input, output, session) {
     }
   })
 
-  # Handle brick dropped to pool (from stack top)
+  # Handle brick dropped to pool (from anywhere in stack)
   observeEvent(input$dropped_to_pool, {
     brick_num <- input$dropped_to_pool$number
 
-    # Remove top brick from stack
+    # Find and remove the brick from stack by its number
     sb <- stack_bricks()
-    if (length(sb) > 0 && sb[[1]]$number == brick_num) {
-      stack_bricks(sb[-1])
+    brick_idx <- which(sapply(sb, function(b) b$number == brick_num))
+
+    if (length(brick_idx) > 0) {
+      removed_brick <- sb[[brick_idx]]
+
+      # Remove from stack
+      stack_bricks(sb[-brick_idx])
 
       # Add back to pool (each brick returns to its numbered slot)
-      pool_bricks(c(pool_bricks(), list(sb[[1]])))
+      pool_bricks(c(pool_bricks(), list(removed_brick)))
     }
   })
 
