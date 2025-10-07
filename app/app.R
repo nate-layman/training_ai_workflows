@@ -3,14 +3,50 @@ library(shiny)
 library(shinyjs)
 library(glue)
 
-# Load text2vec if available
-if (requireNamespace("text2vec", quietly = TRUE)) {
-  library(text2vec)
-  text2vec_available <- TRUE
-  cat("text2vec library loaded at startup\n")
-} else {
-  text2vec_available <- FALSE
-  cat("text2vec not available at startup\n")
+#------------------------------------------
+# Pure R implementation of text similarity (works in shinylive)
+#------------------------------------------
+simple_tokenizer <- function(text) {
+  # Simple word tokenization - split on whitespace and punctuation
+  words <- tolower(text)
+  words <- gsub("[^a-z0-9 ]", " ", words)
+  words <- strsplit(words, "\\s+")[[1]]
+  words[words != ""]
+}
+
+create_simple_dtm <- function(texts, vocab = NULL) {
+  # Create document-term matrix
+  all_tokens <- lapply(texts, simple_tokenizer)
+
+  if (is.null(vocab)) {
+    vocab <- unique(unlist(all_tokens))
+  }
+
+  # Create matrix: rows = documents, columns = terms
+  dtm <- matrix(0, nrow = length(texts), ncol = length(vocab))
+  colnames(dtm) <- vocab
+
+  for (i in seq_along(texts)) {
+    tokens <- all_tokens[[i]]
+    for (token in tokens) {
+      if (token %in% vocab) {
+        dtm[i, token] <- dtm[i, token] + 1
+      }
+    }
+  }
+
+  dtm
+}
+
+cosine_similarity <- function(vec1, vec2) {
+  # Compute cosine similarity between two vectors
+  dot_product <- sum(vec1 * vec2)
+  norm1 <- sqrt(sum(vec1^2))
+  norm2 <- sqrt(sum(vec2^2))
+
+  if (norm1 == 0 || norm2 == 0) return(0)
+
+  dot_product / (norm1 * norm2)
 }
 
 #------------------------------------------
@@ -581,34 +617,20 @@ ui <- fluidPage(
 )
 
 #------------------------------------------
-# Pre-compute text2vec vectors (outside server for global scope)
+# Pre-compute category vectors (pure R, works everywhere)
 #------------------------------------------
-category_vectorizer <- NULL
-category_dtm <- NULL
-using_text2vec <- FALSE
+# Improved category descriptions focusing on core concepts and typical use cases
+category_docs <- c(
+  extraction = "extract pull get fetch retrieve collect gather read find locate search discover identify data information content details value field element attribute property name names from source database api web file document scrape parse access obtain acquire mine harvest capture take grab pick select query lookup investigator pi",
+  prompt = "summarize condense analyze examine study check verify validate test compare contrast classify categorize tag label understand comprehend reason think explain describe interpret translate evaluate judge assess appraise critique review process manipulate work edit refine revise synthesize combine merge integrate rewrite paraphrase simplify clarify enhance improve strengthen ensure compliance requirements logic strength quality llm ai model gpt assistant bot agent question query request instruction task tell instruct direct command",
+  formatting = "generate create write produce compose draft author pen craft format display output present show render print arrange structure organize layout design style export save store convert transform serialize stringify encode json csv xml html email markdown table grid chart graph visualize prettify beautify clean normalize standardize package prepare finalize deliver spreadsheet report summary document letter memo acknowledgment narrative budget grant award timeline"
+)
 
-if (text2vec_available) {
-  tryCatch({
-    # Improved category descriptions focusing on core concepts and typical use cases
-    category_docs <- c(
-      extraction = "extract pull get fetch retrieve collect gather read find locate search discover identify data information content details value field element attribute property name names from source database api web file document scrape parse access obtain acquire mine harvest capture take grab pick select query lookup investigator pi",
-      prompt = "summarize condense analyze examine study check verify validate test compare contrast classify categorize tag label understand comprehend reason think explain describe interpret translate evaluate judge assess appraise critique review process manipulate work edit refine revise synthesize combine merge integrate rewrite paraphrase simplify clarify enhance improve strengthen ensure compliance requirements logic strength quality llm ai model gpt assistant bot agent question query request instruction task tell instruct direct command",
-      formatting = "generate create write produce compose draft author pen craft format display output present show render print arrange structure organize layout design style export save store convert transform serialize stringify encode json csv xml html email markdown table grid chart graph visualize prettify beautify clean normalize standardize package prepare finalize deliver spreadsheet report summary document letter memo acknowledgment narrative budget grant award timeline"
-    )
+# Pre-compute category DTM and vocabulary
+category_dtm <- create_simple_dtm(category_docs)
+category_vocab <- colnames(category_dtm)
 
-    # Pre-compute vocabulary and vectorizer
-    tokens <- itoken(category_docs, preprocessor = tolower, tokenizer = word_tokenizer)
-    vocab <- create_vocabulary(tokens)
-    category_vectorizer <- vocab_vectorizer(vocab)
-    category_dtm <- create_dtm(tokens, category_vectorizer)
-    using_text2vec <- TRUE
-    cat("text2vec loaded successfully for semantic matching\n")
-  }, error = function(e) {
-    cat("text2vec failed to load:", e$message, "\n")
-  })
-} else {
-  cat("text2vec not available\n")
-}
+cat("Semantic matching initialized with", length(category_vocab), "vocabulary terms\n")
 
 #------------------------------------------
 # SERVER
@@ -624,41 +646,27 @@ server <- function(input, output, session) {
   stack_bricks <- reactiveVal(list())
   editing_brick <- reactiveVal(NULL)
 
-  # Optimized semantic matching function
+  # Pure R semantic matching function (works everywhere including shinylive)
   detect_brick_type <- function(text) {
     if (nchar(text) == 0) return("grey")
 
-    text_lower <- tolower(text)
+    # Create DTM for user input using pre-computed vocabulary
+    user_dtm <- create_simple_dtm(text, vocab = category_vocab)
 
-    # Use pre-computed text2vec vectors if available
-    if (!is.null(category_vectorizer) && !is.null(category_dtm)) {
-      tryCatch({
-        # Create DTM for user input using pre-computed vectorizer
-        user_tokens <- itoken(text_lower, preprocessor = tolower, tokenizer = word_tokenizer)
-        user_dtm <- create_dtm(user_tokens, category_vectorizer)
+    # Calculate cosine similarity with each category
+    similarities <- c(
+      extraction = cosine_similarity(user_dtm[1,], category_dtm[1,]),
+      prompt = cosine_similarity(user_dtm[1,], category_dtm[2,]),
+      formatting = cosine_similarity(user_dtm[1,], category_dtm[3,])
+    )
 
-        # Calculate cosine similarity (using raw term frequencies, not TF-IDF)
-        similarities <- c(
-          extraction = sim2(user_dtm, category_dtm[1, , drop = FALSE], method = "cosine")[1,1],
-          prompt = sim2(user_dtm, category_dtm[2, , drop = FALSE], method = "cosine")[1,1],
-          formatting = sim2(user_dtm, category_dtm[3, , drop = FALSE], method = "cosine")[1,1]
-        )
-
-        # Return category with highest similarity (always pick the best match)
-        if (!all(is.na(similarities))) {
-          return(names(which.max(similarities)))
-        }
-        # Only default to prompt if all similarities are NA
-        return("prompt")
-      }, error = function(e) {
-        # If text2vec fails, log error and default to prompt
-        cat("Error in semantic matching:", e$message, "\n")
-        return("prompt")
-      })
+    # Return category with highest similarity (always pick the best match)
+    if (all(similarities == 0)) {
+      # If no word overlap, default to prompt
+      return("prompt")
     }
 
-    # If text2vec not available, default to prompt
-    return("prompt")
+    names(which.max(similarities))
   }
 
   # Setup drag and drop on load
