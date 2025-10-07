@@ -3,6 +3,9 @@ library(shiny)
 library(shinyjs)
 library(glue)
 
+# Try to load text2vec, but don't fail if it's not available
+text2vec_available <- requireNamespace("text2vec", quietly = TRUE)
+
 #------------------------------------------
 # SVG brick generator
 #------------------------------------------
@@ -82,15 +85,18 @@ ui <- fluidPage(
           });
         }
 
-        // Setup click handlers for all pool bricks
+        // Setup click handlers for all pool bricks (only draggable-brick, not placeholders)
         function setupBrickClick() {
           const bricks = document.querySelectorAll('.brick-pool .draggable-brick');
           bricks.forEach(function(brick) {
-            brick.style.cursor = 'pointer';
-            brick.addEventListener('click', function(e) {
-              const number = brick.getAttribute('data-number');
-              Shiny.setInputValue('clicked_brick', {number: parseInt(number), timestamp: Date.now()}, {priority: 'event'});
-            });
+            // Only add click handler if it has the draggable-brick class (not brick-placeholder)
+            if (!brick.classList.contains('brick-placeholder')) {
+              brick.style.cursor = 'pointer';
+              brick.addEventListener('click', function(e) {
+                const number = brick.getAttribute('data-number');
+                Shiny.setInputValue('clicked_brick', {number: parseInt(number), timestamp: Date.now()}, {priority: 'event'});
+              });
+            }
           });
         }
 
@@ -267,6 +273,7 @@ ui <- fluidPage(
       h3 {{
         color: #333;
         margin-bottom: 15px;
+        text-align: center;
       }}
 
       .draggable-brick, .brick {{
@@ -533,7 +540,7 @@ ui <- fluidPage(
       ),
 
       div(class = "right-side",
-        h3("Tasks"),
+        h3("Task Bricks"),
         div(class = "brick-pool", id = "brick_pool",
           div(class = "empty-message", "Loading bricks...")
         )
@@ -570,26 +577,69 @@ server <- function(input, output, session) {
   stack_bricks <- reactiveVal(list())
   editing_brick <- reactiveVal(NULL)
 
-  # Semantic matching function
+  # Pre-compute category vectors for semantic matching (only once at startup)
+  category_vectorizer <- NULL
+  category_dtm <- NULL
+
+  if (text2vec_available) {
+    tryCatch({
+      # Improved category descriptions focusing on core concepts and typical use cases
+      category_docs <- c(
+        extraction = "extract pull get fetch retrieve collect gather read find locate search data information content from source database api web file scrape parse access obtain",
+        prompt = "generate create write ask prompt summarize analyze classify understand reason explain interpret evaluate assess transform process llm ai model question query instructions",
+        formatting = "format display output present show render arrange structure organize layout style export save convert serialize json csv html table prettify"
+      )
+
+      # Pre-compute vocabulary and vectorizer
+      tokens <- text2vec::itoken(category_docs, preprocessor = tolower, tokenizer = text2vec::word_tokenizer)
+      vocab <- text2vec::create_vocabulary(tokens)
+      category_vectorizer <<- text2vec::vocab_vectorizer(vocab)
+      category_dtm <<- text2vec::create_dtm(tokens, category_vectorizer)
+    }, error = function(e) {
+      # Silently fail - will use keyword matching
+    })
+  }
+
+  # Optimized semantic matching function
   detect_brick_type <- function(text) {
     if (nchar(text) == 0) return("grey")
 
     text_lower <- tolower(text)
 
-    # Keywords for each type
-    extraction_keywords <- c("extract", "scrape", "get", "fetch", "retrieve", "find", "collect", "gather", "parse", "read")
-    prompt_keywords <- c("prompt", "ask", "query", "generate", "create", "write", "compose", "design", "summarize", "analyze", "classify")
-    formatting_keywords <- c("format", "structure", "organize", "arrange", "display", "output", "present", "style", "convert", "transform")
+    # Use pre-computed text2vec vectors if available
+    if (!is.null(category_vectorizer) && !is.null(category_dtm)) {
+      tryCatch({
+        # Create DTM for user input using pre-computed vectorizer
+        user_tokens <- text2vec::itoken(text_lower, preprocessor = tolower, tokenizer = text2vec::word_tokenizer)
+        user_dtm <- text2vec::create_dtm(user_tokens, category_vectorizer)
 
-    # Count matches
-    extraction_score <- sum(sapply(extraction_keywords, function(kw) grepl(kw, text_lower)))
-    prompt_score <- sum(sapply(prompt_keywords, function(kw) grepl(kw, text_lower)))
-    formatting_score <- sum(sapply(formatting_keywords, function(kw) grepl(kw, text_lower)))
+        # Calculate cosine similarity (using raw term frequencies, not TF-IDF)
+        similarities <- c(
+          extraction = text2vec::sim2(user_dtm, category_dtm[1, , drop = FALSE], method = "cosine")[1,1],
+          prompt = text2vec::sim2(user_dtm, category_dtm[2, , drop = FALSE], method = "cosine")[1,1],
+          formatting = text2vec::sim2(user_dtm, category_dtm[3, , drop = FALSE], method = "cosine")[1,1]
+        )
 
-    # Return type with highest score
-    scores <- c(extraction = extraction_score, prompt = prompt_score, formatting = formatting_score)
-    if (all(scores == 0)) return("prompt")  # default to prompt if no matches
-    names(which.max(scores))
+        # Return category with highest similarity (with reasonable threshold)
+        if (!all(is.na(similarities)) && max(similarities, na.rm = TRUE) > 0.15) {
+          return(names(which.max(similarities)))
+        }
+      }, error = function(e) {
+        # Fall through to keyword matching below
+      })
+    }
+
+    # Fallback to enhanced keyword matching with priority order
+    # Check extraction first (most specific)
+    if (grepl("extract|pull|fetch|retrieve|collect|gather|read|locate|search|find|scrape|parse|obtain|acquire|access|get.*from|pull.*out|take.*from|grab|capture", text_lower)) {
+      return("extraction")
+    }
+    # Check formatting second (also specific)
+    if (grepl("format|display|output|present|show|render|arrange|structure|organize|layout|style|export|save|convert|serialize|json|csv|html|table|prettify|print", text_lower)) {
+      return("formatting")
+    }
+    # Default to prompt/transformation for everything else
+    return("prompt")
   }
 
   # Setup drag and drop on load
@@ -601,11 +651,12 @@ server <- function(input, output, session) {
   observeEvent(input$clicked_brick, {
     brick_num <- input$clicked_brick$number
 
-    # Find brick in pool
+    # Find brick in pool by number property
     pb <- pool_bricks()
-    brick <- pb[[brick_num]]
+    brick_idx <- which(sapply(pb, function(b) b$number == brick_num))
 
-    if (!is.null(brick)) {
+    if (length(brick_idx) > 0) {
+      brick <- pb[[brick_idx]]
       editing_brick(brick_num)
       updateTextAreaInput(session, "modal_task_input", value = brick$text)
 
@@ -693,18 +744,17 @@ server <- function(input, output, session) {
             "Click to add task description"
           } else {
             type_name <- switch(brick$type,
-                              extraction = "Data Extraction",
+                              extraction = "Extraction",
                               prompt = "Transformation",
-                              formatting = "Output Formatting",
+                              formatting = "Formatting",
                               "Not configured")
             paste0(type_name, ": ", brick$text)
           }
 
-          sprintf("<div class='draggable-brick %s' data-number='%d' data-tooltip='%s'>%d</div>",
+          sprintf("<div class='draggable-brick %s' data-number='%d' data-tooltip='%s'></div>",
                   brick$type,
                   brick$number,
-                  gsub("'", "&apos;", tooltip),
-                  brick$number)
+                  gsub("'", "&apos;", tooltip))
         } else {
           # Brick is in tower - render placeholder (number shown via ::after)
           sprintf("<div class='brick-placeholder' data-number='%d'></div>", slot_num)
@@ -768,20 +818,19 @@ server <- function(input, output, session) {
           is_top <- (idx == 1)
 
           type_name <- switch(sb[[idx]]$type,
-                            extraction = "Data Extraction",
+                            extraction = "Extraction",
                             prompt = "Transformation",
-                            formatting = "Output Formatting",
+                            formatting = "Formatting",
                             "")
           tooltip <- paste0(type_name, ": ", sb[[idx]]$text)
 
           # All bricks use same classes now, overlapping handled by CSS
           classes <- paste(c("brick", sb[[idx]]$type), collapse = " ")
 
-          sprintf("<div class='%s' data-number='%d' data-tooltip='%s'>%d</div>",
+          sprintf("<div class='%s' data-number='%d' data-tooltip='%s'></div>",
                   classes,
                   sb[[idx]]$number,
-                  gsub("'", "&apos;", tooltip),
-                  sb[[idx]]$number)
+                  gsub("'", "&apos;", tooltip))
         }),
         collapse = ""
       )
