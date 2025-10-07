@@ -587,7 +587,7 @@ ui <- fluidPage(
       div(class = "left-side",
         h3("Workflow Tower"),
         div(class = "stack-area", id = "brick_stack",
-          div(class = "empty-message", "Drag bricks here to build your workflow.")
+          div(class = "empty-message", "Add descriptions and drag bricks here to build your workflow!")
         )
       ),
 
