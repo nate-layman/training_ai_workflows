@@ -3,8 +3,15 @@ library(shiny)
 library(shinyjs)
 library(glue)
 
-# Try to load text2vec, but don't fail if it's not available
-text2vec_available <- requireNamespace("text2vec", quietly = TRUE)
+# Load text2vec if available
+if (requireNamespace("text2vec", quietly = TRUE)) {
+  library(text2vec)
+  text2vec_available <- TRUE
+  cat("text2vec library loaded at startup\n")
+} else {
+  text2vec_available <- FALSE
+  cat("text2vec not available at startup\n")
+}
 
 #------------------------------------------
 # SVG brick generator
@@ -85,10 +92,11 @@ ui <- fluidPage(
           });
         }
 
-        // Setup click handlers for all pool bricks (only draggable-brick, not placeholders)
+        // Setup click handlers for all bricks (pool and stack)
         function setupBrickClick() {
-          const bricks = document.querySelectorAll('.brick-pool .draggable-brick');
-          bricks.forEach(function(brick) {
+          // Handle pool bricks (only draggable-brick, not placeholders)
+          const poolBricks = document.querySelectorAll('.brick-pool .draggable-brick');
+          poolBricks.forEach(function(brick) {
             // Only add click handler if it has the draggable-brick class (not brick-placeholder)
             if (!brick.classList.contains('brick-placeholder')) {
               brick.style.cursor = 'pointer';
@@ -97,6 +105,16 @@ ui <- fluidPage(
                 Shiny.setInputValue('clicked_brick', {number: parseInt(number), timestamp: Date.now()}, {priority: 'event'});
               });
             }
+          });
+
+          // Handle stack bricks (in the tower)
+          const stackBricks = document.querySelectorAll('.stack-area .brick');
+          stackBricks.forEach(function(brick) {
+            brick.style.cursor = 'pointer';
+            brick.addEventListener('click', function(e) {
+              const number = brick.getAttribute('data-number');
+              Shiny.setInputValue('clicked_brick', {number: parseInt(number), timestamp: Date.now()}, {priority: 'event'});
+            });
           });
         }
 
@@ -345,7 +363,6 @@ ui <- fluidPage(
         padding: 20px;
         height: 350px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border: 3px dashed #ccc;
         display: flex;
         flex-direction: column-reverse;
         align-items: center;
@@ -564,6 +581,36 @@ ui <- fluidPage(
 )
 
 #------------------------------------------
+# Pre-compute text2vec vectors (outside server for global scope)
+#------------------------------------------
+category_vectorizer <- NULL
+category_dtm <- NULL
+using_text2vec <- FALSE
+
+if (text2vec_available) {
+  tryCatch({
+    # Improved category descriptions focusing on core concepts and typical use cases
+    category_docs <- c(
+      extraction = "extract pull get fetch retrieve collect gather read find locate search discover identify data information content details value field element attribute property name names from source database api web file document scrape parse access obtain acquire mine harvest capture take grab pick select query lookup investigator pi",
+      prompt = "summarize condense analyze examine study check verify validate test compare contrast classify categorize tag label understand comprehend reason think explain describe interpret translate evaluate judge assess appraise critique review process manipulate work edit refine revise synthesize combine merge integrate rewrite paraphrase simplify clarify enhance improve strengthen ensure compliance requirements logic strength quality llm ai model gpt assistant bot agent question query request instruction task tell instruct direct command",
+      formatting = "generate create write produce compose draft author pen craft format display output present show render print arrange structure organize layout design style export save store convert transform serialize stringify encode json csv xml html email markdown table grid chart graph visualize prettify beautify clean normalize standardize package prepare finalize deliver spreadsheet report summary document letter memo acknowledgment narrative budget grant award timeline"
+    )
+
+    # Pre-compute vocabulary and vectorizer
+    tokens <- itoken(category_docs, preprocessor = tolower, tokenizer = word_tokenizer)
+    vocab <- create_vocabulary(tokens)
+    category_vectorizer <- vocab_vectorizer(vocab)
+    category_dtm <- create_dtm(tokens, category_vectorizer)
+    using_text2vec <- TRUE
+    cat("text2vec loaded successfully for semantic matching\n")
+  }, error = function(e) {
+    cat("text2vec failed to load:", e$message, "\n")
+  })
+} else {
+  cat("text2vec not available\n")
+}
+
+#------------------------------------------
 # SERVER
 #------------------------------------------
 server <- function(input, output, session) {
@@ -577,29 +624,6 @@ server <- function(input, output, session) {
   stack_bricks <- reactiveVal(list())
   editing_brick <- reactiveVal(NULL)
 
-  # Pre-compute category vectors for semantic matching (only once at startup)
-  category_vectorizer <- NULL
-  category_dtm <- NULL
-
-  if (text2vec_available) {
-    tryCatch({
-      # Improved category descriptions focusing on core concepts and typical use cases
-      category_docs <- c(
-        extraction = "extract pull get fetch retrieve collect gather read find locate search data information content from source database api web file scrape parse access obtain",
-        prompt = "generate create write ask prompt summarize analyze classify understand reason explain interpret evaluate assess transform process llm ai model question query instructions",
-        formatting = "format display output present show render arrange structure organize layout style export save convert serialize json csv html table prettify"
-      )
-
-      # Pre-compute vocabulary and vectorizer
-      tokens <- text2vec::itoken(category_docs, preprocessor = tolower, tokenizer = text2vec::word_tokenizer)
-      vocab <- text2vec::create_vocabulary(tokens)
-      category_vectorizer <<- text2vec::vocab_vectorizer(vocab)
-      category_dtm <<- text2vec::create_dtm(tokens, category_vectorizer)
-    }, error = function(e) {
-      # Silently fail - will use keyword matching
-    })
-  }
-
   # Optimized semantic matching function
   detect_brick_type <- function(text) {
     if (nchar(text) == 0) return("grey")
@@ -610,35 +634,30 @@ server <- function(input, output, session) {
     if (!is.null(category_vectorizer) && !is.null(category_dtm)) {
       tryCatch({
         # Create DTM for user input using pre-computed vectorizer
-        user_tokens <- text2vec::itoken(text_lower, preprocessor = tolower, tokenizer = text2vec::word_tokenizer)
-        user_dtm <- text2vec::create_dtm(user_tokens, category_vectorizer)
+        user_tokens <- itoken(text_lower, preprocessor = tolower, tokenizer = word_tokenizer)
+        user_dtm <- create_dtm(user_tokens, category_vectorizer)
 
         # Calculate cosine similarity (using raw term frequencies, not TF-IDF)
         similarities <- c(
-          extraction = text2vec::sim2(user_dtm, category_dtm[1, , drop = FALSE], method = "cosine")[1,1],
-          prompt = text2vec::sim2(user_dtm, category_dtm[2, , drop = FALSE], method = "cosine")[1,1],
-          formatting = text2vec::sim2(user_dtm, category_dtm[3, , drop = FALSE], method = "cosine")[1,1]
+          extraction = sim2(user_dtm, category_dtm[1, , drop = FALSE], method = "cosine")[1,1],
+          prompt = sim2(user_dtm, category_dtm[2, , drop = FALSE], method = "cosine")[1,1],
+          formatting = sim2(user_dtm, category_dtm[3, , drop = FALSE], method = "cosine")[1,1]
         )
 
-        # Return category with highest similarity (with reasonable threshold)
-        if (!all(is.na(similarities)) && max(similarities, na.rm = TRUE) > 0.15) {
+        # Return category with highest similarity (always pick the best match)
+        if (!all(is.na(similarities))) {
           return(names(which.max(similarities)))
         }
+        # Only default to prompt if all similarities are NA
+        return("prompt")
       }, error = function(e) {
-        # Fall through to keyword matching below
+        # If text2vec fails, log error and default to prompt
+        cat("Error in semantic matching:", e$message, "\n")
+        return("prompt")
       })
     }
 
-    # Fallback to enhanced keyword matching with priority order
-    # Check extraction first (most specific)
-    if (grepl("extract|pull|fetch|retrieve|collect|gather|read|locate|search|find|scrape|parse|obtain|acquire|access|get.*from|pull.*out|take.*from|grab|capture", text_lower)) {
-      return("extraction")
-    }
-    # Check formatting second (also specific)
-    if (grepl("format|display|output|present|show|render|arrange|structure|organize|layout|style|export|save|convert|serialize|json|csv|html|table|prettify|print", text_lower)) {
-      return("formatting")
-    }
-    # Default to prompt/transformation for everything else
+    # If text2vec not available, default to prompt
     return("prompt")
   }
 
