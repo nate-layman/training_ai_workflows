@@ -1,0 +1,221 @@
+input,expected_category
+"extract grant codes from the spreadsheet",extraction
+"pull all budget amounts",extraction
+"get submission deadlines",extraction
+"retrieve PI names from the database",extraction
+"find all NSF awards",extraction
+"scrape indirect costs from documents",extraction
+"collect F&A rates",extraction
+"fetch sponsor information",extraction
+"gather all active grants",extraction
+"mine proposal numbers",extraction
+"pull award start dates",extraction
+"extract budget periods",extraction
+"get subaward details",extraction
+"retrieve cost sharing amounts",extraction
+"find grant expiration dates",extraction
+"scrape PI contact information",extraction
+"collect department codes",extraction
+"extract matching fund requirements",extraction
+"pull compliance documents",extraction
+"get IRB approval dates",extraction
+"analyze budget vs actuals",prompt
+"compare spending across departments",prompt
+"review grant performance",prompt
+"check compliance status",prompt
+"verify budget allocations",prompt
+"assess risk levels",prompt
+"evaluate proposal success rates",prompt
+"identify overspending",prompt
+"validate expense categories",prompt
+"examine indirect cost recovery",prompt
+"analyze submission patterns",prompt
+"review pending proposals",prompt
+"check for duplicate charges",prompt
+"verify PI eligibility",prompt
+"assess subaward performance",prompt
+"identify funding gaps",prompt
+"analyze award trends",prompt
+"review budget modifications",prompt
+"check salary cap compliance",prompt
+"validate cost share commitments",prompt
+"create monthly report",formatting
+"generate award summary",formatting
+"format budget spreadsheet",formatting
+"produce compliance report",formatting
+"write executive summary",formatting
+"export to Excel",formatting
+"create PDF report",formatting
+"generate email notification",formatting
+"format proposal list",formatting
+"produce dashboard",formatting
+"create PI report",formatting
+"generate financial summary",formatting
+"format for presentation",formatting
+"export award data",formatting
+"create expense report",formatting
+"generate invoice",formatting
+"format budget justification",formatting
+"produce audit report",formatting
+"create quarterly summary",formatting
+"generate sponsor report",formatting
+"pull principal investigator emails",extraction
+"find co-investigator names",extraction
+"extract project titles",extraction
+"get award amounts",extraction
+"retrieve closeout dates",extraction
+"scrape budget categories",extraction
+"collect personnel costs",extraction
+"fetch travel expenses",extraction
+"gather equipment purchases",extraction
+"extract salary charges",extraction
+"pull fringe benefit rates",extraction
+"get subaward institutions",extraction
+"retrieve modification numbers",extraction
+"find no-cost extensions",extraction
+"scrape continuation funding",extraction
+"collect final reports",extraction
+"extract performance metrics",extraction
+"pull carryover amounts",extraction
+"get rebudgeting approvals",extraction
+"retrieve audit findings",extraction
+"compare proposal to award",prompt
+"analyze burn rate",prompt
+"review cost overruns",prompt
+"check unspent funds",prompt
+"verify matching requirements",prompt
+"assess closeout readiness",prompt
+"evaluate subrecipient risk",prompt
+"identify late submissions",prompt
+"validate effort reporting",prompt
+"examine budget variances",prompt
+"analyze funding portfolio",prompt
+"review time and effort",prompt
+"check conflicts of interest",prompt
+"verify institutional commitments",prompt
+"assess proposal competitiveness",prompt
+"identify resubmission opportunities",prompt
+"analyze success by department",prompt
+"review pending actions",prompt
+"check regulatory compliance",prompt
+"validate sponsor requirements",prompt
+"create sponsor financial report",formatting
+"generate effort certification",formatting
+"format closeout documentation",formatting
+"produce pie chart of spending",formatting
+"write grant summary",formatting
+"export to CSV file",formatting
+"create budget comparison table",formatting
+"generate status dashboard",formatting
+"format for sponsor submission",formatting
+"produce annual report",formatting
+"create award notice",formatting
+"generate subaward agreement",formatting
+"format project timeline",formatting
+"export financial data",formatting
+"create progress report",formatting
+"generate budget revision",formatting
+"format expense summary",formatting
+"produce compliance checklist",formatting
+"create PI notification",formatting
+"generate expenditure report",formatting
+"extract all federal awards",extraction
+"pull foundation grants",extraction
+"get industry contracts",extraction
+"retrieve state funding",extraction
+"find clinical trial awards",extraction
+"scrape training grants",extraction
+"collect equipment grants",extraction
+"fetch fellowship awards",extraction
+"gather subcontract amounts",extraction
+"extract direct costs",extraction
+"pull indirect cost amounts",extraction
+"get cost sharing documentation",extraction
+"retrieve budget notes",extraction
+"find modification history",extraction
+"scrape payment schedules",extraction
+"collect invoice numbers",extraction
+"extract deliverables",extraction
+"pull milestone dates",extraction
+"get research objectives",extraction
+"retrieve outcome measures",extraction
+"summarize grant portfolio",prompt
+"calculate total awards",prompt
+"review spending patterns",prompt
+"check budget balance",prompt
+"verify allowable costs",prompt
+"assess grant utilization",prompt
+"evaluate PI workload",prompt
+"identify equipment needs",prompt
+"validate personnel charges",prompt
+"examine subaward spending",prompt
+"analyze departmental funding",prompt
+"review proposal pipeline",prompt
+"check award concentration",prompt
+"verify sponsor terms",prompt
+"assess financial health",prompt
+"identify cost share gaps",prompt
+"analyze proposal volume",prompt
+"review rebudget requests",prompt
+"check expenditure trends",prompt
+"validate budget categories",prompt
+"generate monthly dashboard",formatting
+"create award listing",formatting
+"format PI portfolio",formatting
+"produce financial statement",formatting
+"write closeout report",formatting
+"export pivot table",formatting
+"create bar chart",formatting
+"generate summary email",formatting
+"format submission package",formatting
+"produce year-end report",formatting
+"create department summary",formatting
+"generate variance report",formatting
+"format grant calendar",formatting
+"export to PDF",formatting
+"create budget spreadsheet",formatting
+"generate award letter",formatting
+"format cost share report",formatting
+"produce activity report",formatting
+"create sponsor invoice",formatting
+"generate compliance summary",formatting
+"pull grant account numbers",extraction
+"extract project start dates",extraction
+"get end dates for awards",extraction
+"retrieve sponsor names",extraction
+"find award notices",extraction
+"scrape grant agreements",extraction
+"collect payment amounts",extraction
+"fetch reimbursement data",extraction
+"gather unrecovered costs",extraction
+"extract personnel effort",extraction
+"pull space allocation",extraction
+"get lab usage data",extraction
+"retrieve publication counts",extraction
+"find patent disclosures",extraction
+"scrape student support",extraction
+"collect tuition remission",extraction
+"extract stipend amounts",extraction
+"pull participant costs",extraction
+"get conference expenses",extraction
+"retrieve publication fees",extraction
+"review grant spending rate",prompt
+"analyze effort distribution",prompt
+"check remaining balance",prompt
+"verify sponsor invoicing",prompt
+"assess rebudget needs",prompt
+"evaluate cost effectiveness",prompt
+"identify savings opportunities",prompt
+"validate travel expenses",prompt
+"examine personnel costs",prompt
+"analyze subcontract terms",prompt
+"review payment status",prompt
+"check delinquent reports",prompt
+"verify publication compliance",prompt
+"assess data management",prompt
+"identify training needs",prompt
+"analyze resource allocation",prompt
+"review proposal quality",prompt
+"check institutional support",prompt
+"validate methodology",prompt
+"examine budget reasonableness",prompt

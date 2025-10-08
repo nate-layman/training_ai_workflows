@@ -192,8 +192,11 @@ contract contracts
 agreement agreements
 subaward subawards
 subcontract subcontracts
+subrecipient
 prime
 recipient recipients
+pi
+irb
 report reports
 ffr
 progress
@@ -239,6 +242,13 @@ json
 xml
 yaml
 html
+vs
+pie
+pivot
+departmental
+emails
+notices
+reasonableness
 table tables
 dataframe
 dataset datasets
@@ -284,6 +294,7 @@ expense expenses
 cost costs
 payment payments
 invoice invoices
+invoicing
 revenue
 income
 allocation allocations
@@ -303,6 +314,15 @@ reconciliation
 verification
 balance
 tracking
+actuals
+allowable
+carryover
+overruns
+overspending
+unspent
+unrecovered
+fringe
+stipend
 
 # === WORKFLOW & PROCESS NOUNS ===
 workflow workflows
@@ -338,7 +358,18 @@ deadline deadlines
 timeline timelines
 milestone milestones
 deliverable deliverables
+deliverables
 objective objectives
+closeout
+rebudget
+rebudgeting
+checklist
+dashboard
+metrics
+workload
+fellowship
+remission
+resubmission
 
 # === ACADEMIC & RESEARCH NOUNS ===
 research

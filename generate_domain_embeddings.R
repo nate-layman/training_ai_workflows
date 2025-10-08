@@ -140,14 +140,14 @@ filler_words <- c("the", "a", "an", "and", "or", "but", "in", "on", "at", "to", 
                   "our", "what", "which", "who", "when", "where", "why", "how")
 
 # Get top words by similarity, excluding fillers and priority words
-remaining_slots <- 7500 - length(priority_indices)
+remaining_slots <- 8000 - length(priority_indices)
 non_priority_mask <- !(rownames(glove) %in% all_priority_words) & !(rownames(glove) %in% filler_words)
 non_priority_similarities <- similarities
 non_priority_similarities[!non_priority_mask] <- -Inf
 top_by_similarity <- order(non_priority_similarities, decreasing = TRUE)[1:remaining_slots]
 
-# Combine: priority words FIRST, then similarity-based, take 7.5k total
-combined_indices <- unique(c(priority_indices, top_by_similarity))[1:7500]
+# Combine: priority words FIRST, then similarity-based, take 8k total
+combined_indices <- unique(c(priority_indices, top_by_similarity))[1:8000]
 domain_glove <- glove[combined_indices, ]
 
 # Add missing action words by copying vectors from related words
@@ -174,9 +174,9 @@ for (missing_word in names(missing_words_map)) {
 
 cat("✓ Vocabulary size after adding missing words:", nrow(domain_glove), "\n\n")
 
-cat("✓ Selected 7,500 domain-relevant words!\n")
+cat("✓ Selected 8,000 domain-relevant words!\n")
 cat("  -", length(priority_indices), "priority words (curated + action words)\n")
-cat("  -", 7500 - length(priority_indices), "similarity-selected words (no filler)\n\n")
+cat("  -", 8000 - length(priority_indices), "similarity-selected words (no filler)\n\n")
 
 # Verify all action words are included
 action_words_included <- sum(action_words %in% rownames(domain_glove))
@@ -292,7 +292,7 @@ cat("✓ Saved to app/glove_embeddings.rds\n\n")
 
 file_size_mb <- round(file.size("app/glove_embeddings.rds") / 1024 / 1024, 2)
 cat("File size:", file_size_mb, "MB\n")
-cat("Contains: 7,500 domain-relevant words with 100d vectors\n\n")
+cat("Contains: 8,000 domain-relevant words with 100d vectors\n\n")
 
 cat("========================================\n")
 cat("✓ All done!\n")
