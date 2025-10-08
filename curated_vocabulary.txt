@@ -1,0 +1,580 @@
+# Curated 1000-word vocabulary for Research Administration AI Workflows
+# High-value action words and domain nouns only - NO filler words like "the", "you", "it"
+
+# === EXTRACTION VERBS (base + variants) ===
+extract extraction extracted extracting extracts
+retrieve retrieval retrieved retrieving retrieves
+gather gathering gathered gathers
+collect collection collected collecting collects collector
+fetch fetched fetching fetches
+pull pulled pulling pulls
+obtain obtained obtaining obtains
+acquire acquired acquiring acquires acquisition
+get gets getting gotten
+scrape scraping scraped scraper scrapes
+mine mining mined miner mines
+harvest harvesting harvested harvests
+capture captured capturing captures
+download downloaded downloading downloads
+access accessed accessing accesses
+query queried querying queries
+search searched searching searches
+find finding found finds finder
+locate located locating locates location
+discover discovered discovering discovers discovery
+identify identified identifying identifies identification
+read reading reads reader
+parse parsed parsing parser parses
+load loaded loading loads loader
+import imported importing imports
+ingest ingested ingesting ingests ingestion
+scan scanned scanning scans scanner
+crawl crawled crawling crawler crawls
+browse browsing browsed browser browses
+navigate navigated navigating navigates navigation
+select selected selecting selects selection
+pick picked picking picks
+choose choosing chose chosen chooses choice
+filter filtered filtering filters
+
+# === TRANSFORMATION VERBS (base + variants) ===
+analyze analyzed analyzing analyzes analysis analyst
+examine examined examining examines examination
+study studied studying studies
+investigate investigated investigating investigates investigation investigator
+explore explored exploring explores exploration
+evaluate evaluated evaluating evaluates evaluation
+assess assessed assessing assesses assessment
+review reviewed reviewing reviews reviewer
+process processed processing processes processor
+transform transformed transforming transforms transformation
+convert converted converting converts conversion
+manipulate manipulated manipulating manipulates manipulation
+modify modified modifying modifies modification
+adjust adjusted adjusting adjusts adjustment
+change changed changing changes
+update updated updating updates
+clean cleaned cleaning cleans cleaner
+normalize normalized normalizing normalizes normalization
+standardize standardized standardizing standardizes standardization
+validate validated validating validates validation
+verify verified verifying verifies verification
+check checked checking checks checker
+audit audited auditing audits auditor
+inspect inspected inspecting inspects inspection
+aggregate aggregated aggregating aggregates aggregation
+summarize summarized summarizing summarizes summary summaries
+condense condensed condensing condenses
+abstract abstracted abstracting abstracts abstraction
+digest digested digesting digests
+distill distilled distilling distills distillation
+compress compressed compressing compresses compression
+reduce reduced reducing reduces reduction
+interpret interpreted interpreting interprets interpretation
+explain explained explaining explains explanation
+describe described describing describes description
+characterize characterized characterizing characterizes characterization
+represent represented representing represents representation
+illustrate illustrated illustrating illustrates illustration
+model modeled modeling models
+simulate simulated simulating simulates simulation
+predict predicted predicting predicts prediction predictor
+forecast forecasted forecasting forecasts
+estimate estimated estimating estimates estimation
+project projected projecting projects projection
+extrapolate extrapolated extrapolating extrapolates extrapolation
+detect detected detecting detects detection detector
+recognize recognized recognizing recognizes recognition
+understand understood understanding understands
+comprehend comprehended comprehending comprehends comprehension
+classify classified classifying classifies classification
+categorize categorized categorizing categorizes categorization category
+segment segmented segmenting segments segmentation
+partition partitioned partitioning partitions
+divide divided dividing divides division
+split splitting splits
+separate separated separating separates separation
+join joined joining joins
+merge merged merging merges merger
+combine combined combining combines combination
+unite united uniting unites union
+consolidate consolidated consolidating consolidates consolidation
+integrate integrated integrating integrates integration
+append appended appending appends
+link linked linking links linkage
+compare compared comparing compares comparison
+contrast contrasted contrasting contrasts
+differentiate differentiated differentiating differentiates
+distinguish distinguished distinguishing distinguishes
+correlate correlated correlating correlates correlation
+relate related relating relates relation relationship
+calculate calculated calculating calculates calculation calculator
+compute computed computing computes computation
+determine determined determining determines determination
+count counted counting counts counter
+sum summed summing sums
+group grouped grouping groups
+
+# === FORMATTING VERBS (base + variants) ===
+format formatted formatting formats formatter
+generate generated generating generates generation generator
+create created creating creates creation creator
+produce produced producing produces production
+compose composed composing composes composition
+draft drafted drafting drafts
+author authored authoring authors
+write writing wrote written writes writer
+export exported exporting exports
+save saved saving saves
+output outputs
+render rendered rendering renders
+display displayed displaying displays
+present presented presenting presents presentation
+show showed showing shows
+exhibit exhibited exhibiting exhibits
+convert converted converting converts conversion
+translate translated translating translates translation
+encode encoded encoding encodes
+decode decoded decoding decodes
+serialize serialized serializing serializes
+arrange arranged arranging arranges arrangement
+structure structured structuring structures
+organize organized organizing organizes organization
+layout layouts
+design designed designing designs designer
+style styled styling styles
+template templates templating
+print printed printing prints printer
+publish published publishing publishes publication
+deliver delivered delivering delivers delivery
+transmit transmitted transmitting transmits transmission
+send sending sent sends sender
+distribute distributed distributing distributes distribution
+share shared sharing shares
+
+# === RESEARCH ADMIN NOUNS ===
+grant grants
+proposal proposals
+application applications
+submission submissions
+award awards
+funding
+sponsor sponsors
+investigator investigators
+researcher researchers
+scientist scientists
+faculty
+staff
+personnel
+principal
+budget budgets
+finances
+expenditure expenditures
+cost costs
+expense expenses
+payment payments
+nsf
+nih
+darpa
+doe
+nasa
+usda
+neh
+nea
+dod
+usaid
+federal
+government
+agency agencies
+foundation foundations
+nonprofit
+contract contracts
+agreement agreements
+subaward subawards
+subcontract subcontracts
+prime
+recipient recipients
+report reports
+ffr
+progress
+performance
+technical
+narrative
+compliance
+regulation regulations
+policy policies
+procedure procedures
+guideline guidelines
+requirement requirements
+biographical
+sketch
+biosketch
+resume
+credential credentials
+qualification qualifications
+institution institutions
+university universities
+college colleges
+organization organizations
+department departments
+division divisions
+unit units
+center centers
+office offices
+
+# === DATA & TECHNOLOGY NOUNS ===
+data
+database databases
+api apis
+endpoint endpoints
+service services
+rest
+graphql
+sql
+spreadsheet spreadsheets
+excel
+csv
+tsv
+json
+xml
+yaml
+html
+table tables
+dataframe
+dataset datasets
+record records
+row rows
+column columns
+field fields
+file files
+folder folders
+directory directories
+document documents
+pdf
+docx
+text
+information
+content
+details
+value values
+metadata
+system systems
+platform platforms
+application
+software
+tool tools
+program programs
+server servers
+cloud
+network networks
+web
+browser browsers
+automated
+automation
+authentication
+credential
+token tokens
+password passwords
+login
+
+# === FINANCIAL TERMS ===
+budget budgets
+expenditure expenditures
+expense expenses
+cost costs
+payment payments
+invoice invoices
+revenue
+income
+allocation allocations
+distribution
+appropriation
+reimbursement
+refund
+compensation
+recovery
+forecast forecasts
+projection projections
+estimate estimates
+variance variances
+deficit deficits
+surplus
+reconciliation
+verification
+balance
+tracking
+
+# === WORKFLOW & PROCESS NOUNS ===
+workflow workflows
+pipeline pipelines
+process processes
+procedure procedures
+routine routines
+operation operations
+task tasks
+job jobs
+batch
+bulk
+parallel
+concurrent
+simultaneous
+trigger triggers
+event events
+condition conditions
+threshold thresholds
+rule rules
+criterion criteria
+monitor monitoring
+track tracking
+observe observation
+notify notification
+alert alerts
+approve approval
+authorize authorization
+permit permission
+review
+clearance
+deadline deadlines
+timeline timelines
+milestone milestones
+deliverable deliverables
+objective objectives
+
+# === ACADEMIC & RESEARCH NOUNS ===
+research
+investigation
+study studies
+inquiry
+examination
+academic
+scholarly
+scientific
+technical
+empirical
+innovation
+discovery
+breakthrough
+advancement
+progress
+development
+methodology
+approach
+technique techniques
+framework frameworks
+model models
+hypothesis
+theory theories
+experiment experiments
+trial trials
+test tests
+publication publications
+manuscript manuscripts
+article articles
+paper papers
+journal journals
+peer
+citation citations
+reference references
+bibliography
+collaboration
+interdisciplinary
+multidisciplinary
+
+# === QUALITY & STANDARDS NOUNS ===
+quality
+standard standards
+specification specifications
+requirement requirements
+criterion criteria
+benchmark benchmarks
+guideline guidelines
+compliance
+adherence
+conformity
+accuracy
+precision
+correctness
+validity
+reliability
+consistency
+uniformity
+regularity
+stability
+completeness
+thoroughness
+effectiveness
+efficiency
+productivity
+performance
+accountability
+responsibility
+obligation
+
+# === COMMUNICATION VERBS ===
+communicate communicated communicating communicates communication
+inform informed informing informs information
+notify notified notifying notifies notification
+alert alerted alerting alerts
+advise advised advising advises
+report reported reporting reports reporter
+collaborate collaborated collaborating collaborates collaboration
+cooperate cooperated cooperating cooperates cooperation
+coordinate coordinated coordinating coordinates coordination
+partner partnered partnering partners partnership
+team
+share shared sharing shares
+distribute distributed distributing distributes distribution
+disseminate disseminated disseminating disseminates
+circulate circulated circulating circulates circulation
+discuss discussed discussing discusses discussion
+confer conferred conferring confers conference
+consult consulted consulting consults consultant
+deliberate deliberated deliberating deliberates
+negotiate negotiated negotiating negotiates negotiation
+request requested requesting requests
+ask asked asking asks
+solicit solicited soliciting solicits
+seek seeking sought seeks
+inquire inquired inquiring inquires inquiry
+petition petitioned petitioning petitions
+respond responded responding responds response
+reply replied replying replies
+answer answered answering answers
+acknowledge acknowledged acknowledging acknowledges acknowledgment
+confirm confirmed confirming confirms confirmation
+
+# === TIME & SCHEDULING NOUNS ===
+deadline deadlines
+due
+cutoff
+timeline timelines
+schedule schedules
+timeframe timeframes
+period periods
+quarterly
+annual
+monthly
+weekly
+daily
+periodic
+fiscal
+calendar
+academic
+year years
+semester semesters
+quarter quarters
+month months
+week weeks
+day days
+start
+begin
+commence
+initiate
+launch
+kickoff
+end
+finish
+complete
+conclude
+terminate
+close
+extension
+continuation
+renewal
+supplement
+pending
+awaiting
+scheduled
+planned
+upcoming
+future
+overdue
+late
+delinquent
+expired
+missed
+
+# === DOCUMENT TYPE NOUNS ===
+proposal proposals
+application applications
+solicitation solicitations
+announcement announcements
+report reports
+statement statements
+account accounts
+summary summaries
+overview
+budget budgets
+narrative narratives
+justification justifications
+description descriptions
+timeline timelines
+schedule schedules
+chart charts
+diagram diagrams
+appendix appendices
+attachment attachments
+exhibit exhibits
+supplement supplements
+letter letters
+memo memos
+correspondence
+communication communications
+contract contracts
+agreement agreements
+terms
+conditions
+certification certifications
+assurance assurances
+verification verifications
+
+# === ADMINISTRATIVE ROLE NOUNS ===
+administrator administrators
+manager managers
+director directors
+coordinator coordinators
+officer officers
+specialist specialists
+analyst analysts
+consultant consultants
+investigator investigators
+researcher researchers
+faculty
+staff
+principal
+senior
+lead
+chief
+head
+assistant assistants
+associate associates
+deputy
+vice
+committee committees
+board boards
+panel panels
+reviewer reviewers
+
+# === INSTITUTIONAL NOUNS ===
+office offices
+department departments
+division divisions
+unit units
+center centers
+university universities
+college colleges
+institution institutions
+organization organizations
+sponsored
+programs
+administration
+award
+closeout
+facilities
+resources
+equipment
+infrastructure
+intellectual
+property
+patent patents
+licensing

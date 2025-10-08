@@ -4,42 +4,129 @@ library(shinyjs)
 library(glue)
 
 #------------------------------------------
-# Pure R implementation of text similarity (works in shinylive)
+# Pre-computed GloVe embeddings for semantic similarity
 #------------------------------------------
-simple_tokenizer <- function(text) {
-  # Simple word tokenization - split on whitespace and punctuation
+# Generated using generate_glove_embeddings.R
+# Contains 10k most common words + pre-computed category embeddings
+
+# Load embeddings
+embeddings_data <- readRDS('glove_embeddings.rds')
+word_embeddings <- embeddings_data$word_embeddings
+category_embeddings <- embeddings_data$category_embeddings
+
+# Load action verbs from curated list
+action_words_lines <- readLines('action_words.txt')
+action_words_lines <- action_words_lines[!grepl("^#", action_words_lines) & action_words_lines != ""]
+action_verb_list <- tolower(trimws(sapply(strsplit(action_words_lines, "\\|"), `[`, 1)))
+action_verb_list <- unique(action_verb_list[action_verb_list != ""])
+
+#------------------------------------------
+# Find closest word in vocabulary
+#------------------------------------------
+# Uses character-level similarity when exact match not found
+find_closest_word <- function(word, vocabulary) {
+  if (word %in% vocabulary) return(word)
+
+  # Calculate simple character overlap score
+  scores <- sapply(vocabulary, function(v) {
+    word_chars <- strsplit(word, "")[[1]]
+    v_chars <- strsplit(v, "")[[1]]
+
+    # Jaccard similarity: intersection / union
+    intersection <- sum(word_chars %in% v_chars)
+    union <- length(unique(c(word_chars, v_chars)))
+
+    # Also consider length similarity
+    len_diff <- abs(nchar(word) - nchar(v))
+
+    # Combined score
+    intersection / union - (len_diff * 0.1)
+  })
+
+  # Return word with highest score
+  vocabulary[which.max(scores)]
+}
+
+#------------------------------------------
+# Document embedding function with fallback
+#------------------------------------------
+# Converts text to embedding by averaging word vectors
+# Falls back to closest word match if exact word not found
+# Excludes filler words that don't carry semantic meaning
+# Weights verbs (action words) more heavily than nouns
+doc_embed <- function(text, embeddings = word_embeddings) {
+  # Tokenize and clean
   words <- tolower(text)
   words <- gsub("[^a-z0-9 ]", " ", words)
   words <- strsplit(words, "\\s+")[[1]]
-  words[words != ""]
-}
+  words <- words[words != ""]
 
-create_simple_dtm <- function(texts, vocab = NULL) {
-  # Create document-term matrix
-  all_tokens <- lapply(texts, simple_tokenizer)
-
-  if (is.null(vocab)) {
-    vocab <- unique(unlist(all_tokens))
+  if (length(words) == 0) {
+    return(rep(0, ncol(embeddings)))
   }
 
-  # Create matrix: rows = documents, columns = terms
-  dtm <- matrix(0, nrow = length(texts), ncol = length(vocab))
-  colnames(dtm) <- vocab
+  # Exclude filler words that don't carry semantic meaning
+  filler_words <- c("the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+                    "of", "with", "by", "from", "as", "is", "was", "are", "were", "be",
+                    "been", "being", "have", "has", "had", "do", "does", "did", "will",
+                    "would", "should", "could", "may", "might", "must", "can", "shall",
+                    "this", "that", "these", "those", "i", "you", "he", "she", "it",
+                    "we", "they", "them", "their", "my", "your", "his", "her", "its",
+                    "our", "what", "which", "who", "when", "where", "why", "how")
 
-  for (i in seq_along(texts)) {
-    tokens <- all_tokens[[i]]
-    for (token in tokens) {
-      if (token %in% vocab) {
-        dtm[i, token] <- dtm[i, token] + 1
+  # Remove filler words from user input
+  words <- words[!(words %in% filler_words)]
+
+  if (length(words) == 0) {
+    return(rep(0, ncol(embeddings)))
+  }
+
+  # Match each word to vocabulary (exact or closest)
+  vocab <- rownames(embeddings)
+  matched_words <- sapply(words, function(w) {
+    if (w %in% vocab) {
+      w
+    } else {
+      # Find closest match for unknown words
+      find_closest_word(w, vocab)
+    }
+  })
+
+  # Build weighted embedding
+  # Action verbs: 4x weight (verbs dominate over nouns)
+  # Everything else: 1x weight
+  word_vecs <- matrix(0, nrow = 0, ncol = ncol(embeddings))
+
+  for (i in seq_along(matched_words)) {
+    word <- matched_words[i]
+    if (word %in% rownames(embeddings)) {
+      vec <- embeddings[word, ]
+
+      # Determine weight
+      weight <- 1
+      if (word %in% action_verb_list) {
+        weight <- 5  # 5x weight for action verbs
+      }
+
+      # Repeat vector 'weight' times to increase its influence
+      for (j in 1:weight) {
+        word_vecs <- rbind(word_vecs, vec)
       }
     }
   }
 
-  dtm
+  if (nrow(word_vecs) == 0) {
+    return(rep(0, ncol(embeddings)))
+  }
+
+  # Average the weighted vectors
+  colMeans(word_vecs)
 }
 
+#------------------------------------------
+# Cosine similarity function
+#------------------------------------------
 cosine_similarity <- function(vec1, vec2) {
-  # Compute cosine similarity between two vectors
   dot_product <- sum(vec1 * vec2)
   norm1 <- sqrt(sum(vec1^2))
   norm2 <- sqrt(sum(vec2^2))
@@ -616,22 +703,6 @@ ui <- fluidPage(
 )
 
 #------------------------------------------
-# Pre-compute category vectors (pure R, works everywhere)
-#------------------------------------------
-# Improved category descriptions focusing on core concepts and typical use cases
-category_docs <- c(
-  extraction = "extract pull get fetch retrieve collect gather read find locate search discover identify data information content details value field element attribute property name names from source database api web file document scrape parse access obtain acquire mine harvest capture take grab pick select query lookup investigator pi",
-  prompt = "summarize condense analyze examine study check verify validate test compare contrast classify categorize tag label understand comprehend reason think explain describe interpret translate evaluate judge assess appraise critique review process manipulate work edit refine revise synthesize combine merge integrate rewrite paraphrase simplify clarify enhance improve strengthen ensure compliance requirements logic strength quality llm ai model gpt assistant bot agent question query request instruction task tell instruct direct command",
-  formatting = "generate create write produce compose draft author pen craft format display output present show render print arrange structure organize layout design style export save store convert transform serialize stringify encode json csv xml html email markdown table grid chart graph visualize prettify beautify clean normalize standardize package prepare finalize deliver spreadsheet report summary document letter memo acknowledgment narrative budget grant award timeline"
-)
-
-# Pre-compute category DTM and vocabulary
-category_dtm <- create_simple_dtm(category_docs)
-category_vocab <- colnames(category_dtm)
-
-cat("Semantic matching initialized with", length(category_vocab), "vocabulary terms\n")
-
-#------------------------------------------
 # SERVER
 #------------------------------------------
 server <- function(input, output, session) {
@@ -645,27 +716,27 @@ server <- function(input, output, session) {
   stack_bricks <- reactiveVal(list())
   editing_brick <- reactiveVal(NULL)
 
-  # Pure R semantic matching function (works everywhere including shinylive)
+  # Semantic matching using GloVe embeddings
   detect_brick_type <- function(text) {
     if (nchar(text) == 0) return("grey")
 
-    # Create DTM for user input using pre-computed vocabulary
-    user_dtm <- create_simple_dtm(text, vocab = category_vocab)
+    # Create embedding for user input using GloVe
+    user_vec <- doc_embed(text)
 
-    # Calculate cosine similarity with each category
+    # Calculate cosine similarity with each category embedding
     similarities <- c(
-      extraction = cosine_similarity(user_dtm[1,], category_dtm[1,]),
-      prompt = cosine_similarity(user_dtm[1,], category_dtm[2,]),
-      formatting = cosine_similarity(user_dtm[1,], category_dtm[3,])
+      extraction = cosine_similarity(user_vec, category_embeddings$extraction),
+      prompt = cosine_similarity(user_vec, category_embeddings$prompt),
+      formatting = cosine_similarity(user_vec, category_embeddings$formatting)
     )
 
-    # Return category with highest similarity (always pick the best match)
+    # Return category with highest similarity
+    # If all similarities are 0 (no words found in GloVe), default to prompt
     if (all(similarities == 0)) {
-      # If no word overlap, default to prompt
       return("prompt")
     }
 
-    names(which.max(similarities))
+    return(names(which.max(similarities)))
   }
 
   # Setup drag and drop on load
