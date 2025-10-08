@@ -3,3 +3,24 @@
 .Rhistory
 .RData
 .Ruserdata
+renv/
+.DS_Store
+
+# Large downloaded files
+glove.6B.100d.txt
+glove.6B.zip
+*.udpipe
+
+# Test files
+test_*.R
+debug_*.R
+check_*.R
+annotate_*.R
+
+# Temporary/setup files
+generate_embeddings.R
+generate_glove_embeddings.R
+cloudflare-worker/
+GLOVE_SETUP.md
+EMBEDDINGS_SETUP.md
+target_vocabulary.txt
