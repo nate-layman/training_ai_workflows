@@ -187,8 +187,10 @@ ui <- fluidPage(
   useShinyjs(),
   tags$head(
     tags$script(HTML("
-      // Drag and drop functionality
+      // Show welcome modal on page load
       document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('welcome_modal').style.display = 'block';
+
         Shiny.addCustomMessageHandler('setupDragDrop', function(message) {
           setupDragAndDrop();
         });
@@ -198,11 +200,14 @@ ui <- fluidPage(
       var poolDropHandlerAdded = false;
 
       function setupDragAndDrop() {
-        const brickPool = document.getElementById('brick_pool');
-        const stackArea = document.getElementById('brick_stack');
+        try {
+          const brickPool = document.getElementById('brick_pool');
+          const stackArea = document.getElementById('brick_stack');
 
-        // Setup drag for colored bricks in pool only
-        function setupBrickDrag() {
+          if (!brickPool || !stackArea) return;
+
+          // Setup drag for colored bricks in pool only
+          function setupBrickDrag() {
           const bricks = document.querySelectorAll('.brick-pool .draggable-brick:not(.grey)');
           bricks.forEach(function(brick) {
             brick.style.cursor = 'move';
@@ -305,10 +310,13 @@ ui <- fluidPage(
           });
         }
 
-        setupBrickDrag();
-        setupBrickClick();
-        setupStackDrag();
-        setupHoverListeners();
+          setupBrickDrag();
+          setupBrickClick();
+          setupStackDrag();
+          setupHoverListeners();
+        } catch(e) {
+          console.error('Error in setupDragAndDrop:', e);
+        }
       }
 
       function setupHoverListeners() {
@@ -370,6 +378,17 @@ ui <- fluidPage(
         }
         if (e.target.id === 'modal_update_brick') {
           Shiny.setInputValue('save_brick_click', {timestamp: Date.now()}, {priority: 'event'});
+        }
+        if (e.target.id === 'close_welcome' ||
+            e.target.id === 'welcome_modal') {
+          document.getElementById('welcome_modal').style.display = 'none';
+        }
+        if (e.target.id === 'info_button') {
+          document.getElementById('info_modal').style.display = 'block';
+        }
+        if (e.target.id === 'close_info' ||
+            e.target.id === 'info_modal') {
+          document.getElementById('info_modal').style.display = 'none';
         }
       });
     ")),
@@ -450,6 +469,21 @@ ui <- fluidPage(
       .draggable-brick.grey:hover::after, .brick.grey:hover::after {{
         background: rgba(153, 153, 153, 0.85);
         color: white;
+      }}
+
+      .brick-symbol {{
+        position: absolute;
+        font-size: 32px;
+        font-weight: bold;
+        color: white;
+      }}
+
+      .brick-symbol-2, .brick-symbol-5 {{
+        font-size: 24px;
+      }}
+
+      .brick-symbol-3 {{
+        transform: translateY(-2px);
       }}
 
       .draggable-brick.extraction:hover::after, .brick.extraction:hover::after {{
@@ -563,10 +597,7 @@ ui <- fluidPage(
       }}
 
       .brick-placeholder::after {{
-        content: attr(data-number);
-        font-size: 24px;
-        font-weight: bold;
-        color: #999999;
+        content: '';
       }}
 
       .brick-pool.drag-over {{
@@ -605,15 +636,24 @@ ui <- fluidPage(
         width: 100%;
         height: 100%;
         background-color: rgba(0,0,0,0.4);
+        overflow-y: auto;
+        padding: 40px 20px;
       }}
 
       .modal-content {{
         background-color: white;
-        margin: 10% auto;
+        margin: auto;
         padding: 30px;
         border-radius: 10px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         width: 500px;
+        max-width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+      }}
+
+      .modal-welcome {{
+        width: 800px;
         max-width: 90%;
       }}
 
@@ -684,6 +724,10 @@ ui <- fluidPage(
           div(class = "empty-message", "Loading bricks...")
         )
       )
+    ),
+
+    div(style = "text-align: center; margin-top: 30px;",
+      tags$button(id = "info_button", style = "padding: 10px 20px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; font-size: 14px; color: #666; font-family: Arial, sans-serif;", "More Info")
     )
   ),
 
@@ -698,6 +742,96 @@ ui <- fluidPage(
     )
   ),
 
+  # Welcome modal
+  tags$div(id = "welcome_modal", class = "modal",
+    tags$div(class = "modal-content modal-welcome",
+      h3("Welcome to AI Workflow Builder"),
+      tags$div(style = "font-size: 14px; line-height: 1.7; color: #666;",
+        tags$p("Build research administration workflows by combining three types of AI task bricks!"),
+        tags$div(style = "margin: 25px 0;",
+          tags$p(
+            tags$span(style = "color: #2196F3; font-weight: bold;", "Extraction:"),
+            " Data retrieval and gathering.",
+            style = "margin: 12px 0;"
+          ),
+          tags$p(
+            tags$span(style = "color: #4CAF50; font-weight: bold;", "Transformation:"),
+            " Processing and analysis.",
+            style = "margin: 12px 0;"
+          ),
+          tags$p(
+            tags$span(style = "color: #FFC107; font-weight: bold;", "Formatting:"),
+            " Format output.",
+            style = "margin: 12px 0;"
+          )
+        ),
+
+        tags$hr(style = "margin: 20px 0; border: none; border-top: 1px solid #ddd;"),
+
+        tags$p(
+          tags$strong("1. Click a brick"),
+          " and describe each task. They will be categorized automatically.",
+          style = "margin: 8px 0;"
+        ),
+        tags$p(
+          tags$strong("2. Drag tasks"),
+          " to assemble a workflow",
+          style = "margin: 8px 0;"
+        ),
+
+        tags$p(
+          "Click ",
+          tags$span(style = "font-weight: bold;", "More Info"),
+          " below for more information.",
+          tags$br(),
+          style = "margin: 15px 0 0 0; font-size: 13px; color: #999;"
+        )
+      ),
+      tags$button(id = "close_welcome", style = "width: 100%; padding: 12px; background-color: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 25px;", "Got it!")
+    )
+  ),
+
+  # More Info modal
+  tags$div(id = "info_modal", class = "modal",
+    tags$div(class = "modal-content modal-welcome",
+      h3("How It Works"),
+      tags$div(style = "font-size: 14px; line-height: 1.7; color: #666;",
+        tags$div(style = "margin: 20px 0;",
+          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Why Repeatable Workflows Matter"),
+          tags$p("Consistent, documented workflows reduce errors, save time, and make processes easier to share and improve over time.",
+                 style = "margin: 0; color: #777; font-size: 13px;")
+        ),
+        tags$div(style = "margin: 20px 0;",
+          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Breaking Down into Discrete Steps"),
+          tags$p("Complex tasks become manageable when broken into small, focused steps. Each step does one thing well, making workflows flexible and reusable.",
+                 style = "margin: 0; color: #777; font-size: 13px;")
+        ),
+        tags$div(style = "margin: 20px 0;",
+          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "The Three Task Types"),
+          tags$p(
+            tags$span(style = "color: #2196F3; font-weight: bold;", "Extraction:"),
+            " Data retrieval and gathering.",
+            tags$br(),
+            tags$span(style = "color: #4CAF50; font-weight: bold;", "Transformation:"),
+            " Processing and analysis.",
+            tags$br(),
+            tags$span(style = "color: #FFC107; font-weight: bold;", "Formatting:"),
+            " Format output.",
+            style = "margin: 0; color: #777; font-size: 13px;"
+          )
+        ),
+        tags$div(style = "margin: 20px 0;",
+          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Task Classification"),
+          tags$p("We use AI-powered semantic matching with GloVe embeddings—a machine learning approach that understands meaning. Your task description is converted into a numerical pattern and compared against extraction, analysis, and formatting patterns. The system finds the closest match and automatically colors your brick accordingly.",
+                 style = "margin: 0 0 8px 0; color: #777; font-size: 13px;"),
+          tags$p(tags$em("Question: What type of AI task would categorizing tasks be?"),
+                 style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
+        )
+      ),
+      tags$button(id = "close_info", style = "width: 100%; padding: 12px; background-color: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;", "Close")
+    )
+  ),
+
   # Status bar
   tags$div(id = "status_bar", "Hover over a brick to see its details")
 )
@@ -706,6 +840,12 @@ ui <- fluidPage(
 # SERVER
 #------------------------------------------
 server <- function(input, output, session) {
+  # Map brick numbers to symbols
+  get_brick_symbol <- function(number) {
+    symbols <- c("●", "▲", "■", "◆", "★")
+    symbols[number]
+  }
+
   pool_bricks <- reactiveVal(list(
     list(number = 1, type = "grey", text = "", id = "1"),
     list(number = 2, type = "grey", text = "", id = "2"),
@@ -836,7 +976,11 @@ server <- function(input, output, session) {
     html <- paste0(
       sapply(1:5, function(slot_num) {
         # Find brick with this number in pool
-        brick_idx <- which(sapply(pb, function(b) b$number == slot_num))
+        if (length(pb) == 0) {
+          brick_idx <- integer(0)
+        } else {
+          brick_idx <- which(sapply(pb, function(b) b$number == slot_num))
+        }
 
         if (length(brick_idx) > 0) {
           # Brick exists in pool - render it
@@ -852,10 +996,14 @@ server <- function(input, output, session) {
             paste0(type_name, ": ", brick$text)
           }
 
-          sprintf("<div class='draggable-brick %s' data-number='%d' data-tooltip='%s'></div>",
+          symbol <- get_brick_symbol(brick$number)
+          sprintf("<div class='draggable-brick %s' data-number='%d' data-tooltip='%s' data-symbol='%s'><span class='brick-symbol brick-symbol-%d'>%s</span></div>",
                   brick$type,
                   brick$number,
-                  gsub("'", "&apos;", tooltip))
+                  gsub("'", "&apos;", tooltip),
+                  symbol,
+                  brick$number,
+                  symbol)
         } else if (slot_num %in% stack_brick_numbers) {
           # Brick is in tower - render placeholder (number shown via ::after)
           sprintf("<div class='brick-placeholder' data-number='%d'></div>", slot_num)
@@ -897,7 +1045,11 @@ server <- function(input, output, session) {
 
     # Find and remove the brick from stack by its number
     sb <- stack_bricks()
-    brick_idx <- which(sapply(sb, function(b) b$number == brick_num))
+    if (length(sb) == 0) {
+      brick_idx <- integer(0)
+    } else {
+      brick_idx <- which(sapply(sb, function(b) b$number == brick_num))
+    }
 
     if (length(brick_idx) > 0) {
       removed_brick <- sb[[brick_idx]]
@@ -935,11 +1087,15 @@ server <- function(input, output, session) {
 
           # All bricks use same classes now, overlapping handled by CSS
           classes <- paste(c("brick", sb[[idx]]$type), collapse = " ")
+          symbol <- get_brick_symbol(sb[[idx]]$number)
 
-          sprintf("<div class='%s' data-number='%d' data-tooltip='%s'></div>",
+          sprintf("<div class='%s' data-number='%d' data-tooltip='%s' data-symbol='%s'><span class='brick-symbol brick-symbol-%d'>%s</span></div>",
                   classes,
                   sb[[idx]]$number,
-                  gsub("'", "&apos;", tooltip))
+                  gsub("'", "&apos;", tooltip),
+                  symbol,
+                  sb[[idx]]$number,
+                  symbol)
         }),
         collapse = ""
       )
