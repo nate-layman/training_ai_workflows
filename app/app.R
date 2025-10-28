@@ -824,9 +824,13 @@ server <- function(input, output, session) {
     }
   })
 
-  # Render pool bricks - always show 5 slots
+  # Render pool bricks - show bricks in pool and placeholders for bricks in stack
   observe({
     pb <- pool_bricks()
+    sb <- stack_bricks()
+
+    # Get all brick numbers that are in the stack
+    stack_brick_numbers <- sapply(sb, function(b) b$number)
 
     # Create a list of 5 slots, some may be empty (placeholder)
     html <- paste0(
@@ -852,9 +856,12 @@ server <- function(input, output, session) {
                   brick$type,
                   brick$number,
                   gsub("'", "&apos;", tooltip))
-        } else {
+        } else if (slot_num %in% stack_brick_numbers) {
           # Brick is in tower - render placeholder (number shown via ::after)
           sprintf("<div class='brick-placeholder' data-number='%d'></div>", slot_num)
+        } else {
+          # Brick doesn't exist - render nothing
+          ""
         }
       }),
       collapse = ""
