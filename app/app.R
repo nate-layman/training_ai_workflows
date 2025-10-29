@@ -837,7 +837,7 @@ ui <- fluidPage(
         tags$div(style = "margin: 20px 0;",
           tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Breaking Down Tasks"),
           tags$p(
-            "A good workflow chains tasks together, each building on the previous:",
+            "As you build your workflow, think about how tasks connect:",
             tags$br(),
             tags$em("Extract", style = "color: #2196F3; font-weight: bold;"), " → ",
             tags$em("Transform", style = "color: #4CAF50; font-weight: bold;"), " → ",
@@ -845,26 +845,20 @@ ui <- fluidPage(
             style = "margin: 0 0 12px 0; color: #777; font-size: 13px;"
           ),
           tags$p(
-            tags$strong("Find the right balance:"), " Too few tasks makes them hard to reuse. Too many becomes unwieldy. Each task should have one clear purpose.",
-            style = "margin: 0 0 12px 0; color: #777; font-size: 13px;"
+            tags$em("Consider these questions as you design your workflow:"),
+            style = "margin: 0 0 10px 0; color: #666; font-size: 13px; font-weight: bold;"
           ),
           tags$p(
-            tags$strong("Avoid mixing concepts:"), " Don't combine multiple ideas in one task. Each brick should do one thing well.",
-            style = "margin: 0 0 12px 0; color: #777; font-size: 13px;"
-          ),
-          tags$p(
-            tags$strong("Think about dependencies:"), " Each task should ideally use output from the previous one. Avoid tasks that depend on multiple others.",
-            style = "margin: 0 0 12px 0; color: #777; font-size: 13px;"
-          ),
-          tags$p(
-            tags$em("Questions to ask yourself:"),
+            "• How many tasks is the right amount? What happens if you have too few? Too many?",
             tags$br(),
-            "• Can this task be completed without the previous task?",
+            "• Should each task focus on one idea, or can it combine multiple concepts?",
             tags$br(),
-            "• Would you reuse this task in a different workflow?",
+            "• How should tasks depend on each other? What makes a good sequence?",
             tags$br(),
-            "• Can someone else understand what this task does by its description?",
-            style = "margin: 0; color: #999; font-size: 12px; font-style: italic;"
+            "• Would you want to reuse any of these tasks in a different workflow?",
+            tags$br(),
+            "• Could someone else understand what each task does from its description?",
+            style = "margin: 0; color: #777; font-size: 13px; line-height: 1.8;"
           )
         )
       ),
