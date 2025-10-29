@@ -856,24 +856,24 @@ ui <- fluidPage(
             style = "margin: 0 0 10px 0; color: #666; font-size: 13px; font-weight: bold;"
           ),
           tags$p(
-            "• What type of AI task would categorizing tasks be?",
+            "1. What type of AI task would automatically categorizing AI tasks based on their descriptions be?",
             tags$br(),
-            "• How many tasks is the right amount? What happens if you have too few? Too many?",
+            "2. Do you need to perform your tasks in a specific order, or can they be done all at the same time?",
             tags$br(),
-            "• Should each task focus on one idea, or can it combine multiple concepts?",
+            "3. How many tasks is the right amount? What happens if you have too few? Too many?",
             tags$br(),
-            "• How should tasks depend on each other? What makes a good sequence?",
+            "4. Should each task focus on one idea, or can a task combine multiple concepts?",
             tags$br(),
-            "• Do you need to perform your tasks in a specific order, or can some be done at once?",
+            "5. Would you want to reuse any of these tasks in a different workflow?",
             tags$br(),
-            "• Would you want to reuse any of these tasks in a different workflow?",
-            tags$br(),
-            "• Could someone else understand what each task does from its description?",
+            "6. Could someone else understand what each task does from its description?",
             style = "margin: 0; color: #777; font-size: 13px; line-height: 1.8;"
           )
         )
       ),
-      tags$button(id = "close_info", style = "width: 100%; padding: 12px; background-color: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;", "Close")
+      tags$div(style = "display: flex; justify-content: center;",
+        tags$button(id = "close_info", style = "padding: 12px 24px; background-color: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;", "Close")
+      )
     )
   ),
 
