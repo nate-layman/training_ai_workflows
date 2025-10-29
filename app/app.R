@@ -824,6 +824,8 @@ ui <- fluidPage(
           tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Task Classification"),
           tags$p("We use AI-powered semantic matching with GloVe embeddings—a machine learning approach that understands meaning. Your task description is converted into a numerical pattern and compared against extraction, analysis, and formatting patterns. The system finds the closest match and automatically colors your brick accordingly.",
                  style = "margin: 0 0 8px 0; color: #777; font-size: 13px;"),
+          tags$p(tags$strong("Note:"), " The categorization method isn't perfect. We prioritized speed in this demonstration, so some tasks may be miscategorized. You can always click a brick to correct its classification.",
+                 style = "margin: 0 0 8px 0; color: #d9534f; font-size: 13px;"),
           tags$p(tags$em("Question: What type of AI task would categorizing tasks be?"),
                  style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
         ),
