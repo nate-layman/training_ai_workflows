@@ -826,6 +826,11 @@ ui <- fluidPage(
                  style = "margin: 0 0 8px 0; color: #777; font-size: 13px;"),
           tags$p(tags$em("Question: What type of AI task would categorizing tasks be?"),
                  style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
+        ),
+        tags$div(style = "margin: 20px 0;",
+          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Workflow Order"),
+          tags$p(tags$em("Question: Do you need to perform your tasks in a specific order? Or can all tasks be performed at once?"),
+                 style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
         )
       ),
       tags$button(id = "close_info", style = "width: 100%; padding: 12px; background-color: #2196F3; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;", "Close")
