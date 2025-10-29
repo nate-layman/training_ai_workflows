@@ -373,21 +373,21 @@ ui <- fluidPage(
       });
 
       document.addEventListener('click', function(e) {
-        if (e.target.id === 'brick_modal') {
-          closeModal();
-        }
         if (e.target.id === 'modal_update_brick') {
+          // Click brick to save
           Shiny.setInputValue('save_brick_click', {timestamp: Date.now()}, {priority: 'event'});
         }
-        if (e.target.id === 'close_welcome' ||
-            e.target.id === 'welcome_modal') {
+        if (e.target.id === 'modal_rotate_brick' || e.target.id === 'brick_type_label') {
+          // Click rotate or type label to cycle through categories
+          Shiny.setInputValue('cycle_category_click', {timestamp: Date.now()}, {priority: 'event'});
+        }
+        if (e.target.id === 'close_welcome') {
           document.getElementById('welcome_modal').style.display = 'none';
         }
         if (e.target.id === 'info_button') {
           document.getElementById('info_modal').style.display = 'block';
         }
-        if (e.target.id === 'close_info' ||
-            e.target.id === 'info_modal') {
+        if (e.target.id === 'close_info') {
           document.getElementById('info_modal').style.display = 'none';
         }
       });
@@ -657,6 +657,12 @@ ui <- fluidPage(
         max-width: 90%;
       }}
 
+      #info_modal .modal-content {{
+        user-select: auto;
+        -webkit-user-select: auto;
+        -moz-user-select: auto;
+        -ms-user-select: auto;
+      }}
 
       .modal-update-brick {{
         width: 180px;
@@ -738,7 +744,15 @@ ui <- fluidPage(
       textAreaInput("modal_task_input", "AI Task Description:",
                    placeholder = "Describe what this brick should do...",
                    rows = 4, width = "100%"),
-      tags$button(id = "modal_update_brick", class = "modal-update-brick grey", "Update")
+      # Type label row - clickable type text to rotate
+      tags$div(style = "margin-top: 20px; font-size: 14px; color: #666;",
+        "Task type: ",
+        tags$span(id = "brick_type_label", style = "font-weight: bold; cursor: pointer; color: #2196F3;", "Extract")
+      ),
+      # Brick button row - centered
+      tags$div(style = "margin-top: 15px; display: flex; justify-content: center;",
+        tags$button(id = "modal_update_brick", class = "modal-update-brick grey", style = "width: 160px; height: 110px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; padding-top: 15px;", "Update")
+      )
     )
   ),
 
@@ -824,15 +838,8 @@ ui <- fluidPage(
           tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Task Classification"),
           tags$p("We use AI-powered semantic matching with GloVe embeddings—a machine learning approach that understands meaning. Your task description is converted into a numerical pattern and compared against extraction, analysis, and formatting patterns. The system finds the closest match and automatically colors your brick accordingly.",
                  style = "margin: 0 0 8px 0; color: #777; font-size: 13px;"),
-          tags$p(tags$strong("Note:"), " The categorization method isn't perfect. We prioritized speed in this demonstration, so some tasks may be miscategorized.",
-                 style = "margin: 0 0 8px 0; color: #999; font-size: 13px;"),
-          tags$p(tags$em("Question: What type of AI task would categorizing tasks be?"),
-                 style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
-        ),
-        tags$div(style = "margin: 20px 0;",
-          tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Workflow Order"),
-          tags$p(tags$em("Question: Do you need to perform your tasks in a specific order? Or can all tasks be performed at once?"),
-                 style = "margin: 0; color: #999; font-size: 12px; font-style: italic;")
+          tags$p(tags$strong("Note:"), " The categorization method isn't perfect. We prioritized speed in this demonstration, so some tasks may be miscategorized. You can click the colored task type text when editing a brick to override the automatic category.",
+                 style = "margin: 0; color: #999; font-size: 13px;")
         ),
         tags$div(style = "margin: 20px 0;",
           tags$h4(style = "color: #333; margin: 0 0 10px 0; font-weight: bold;", "Breaking Down Tasks"),
@@ -849,11 +856,15 @@ ui <- fluidPage(
             style = "margin: 0 0 10px 0; color: #666; font-size: 13px; font-weight: bold;"
           ),
           tags$p(
+            "• What type of AI task would categorizing tasks be?",
+            tags$br(),
             "• How many tasks is the right amount? What happens if you have too few? Too many?",
             tags$br(),
             "• Should each task focus on one idea, or can it combine multiple concepts?",
             tags$br(),
             "• How should tasks depend on each other? What makes a good sequence?",
+            tags$br(),
+            "• Do you need to perform your tasks in a specific order, or can some be done at once?",
             tags$br(),
             "• Would you want to reuse any of these tasks in a different workflow?",
             tags$br(),
@@ -889,6 +900,19 @@ server <- function(input, output, session) {
   ))
   stack_bricks <- reactiveVal(list())
   editing_brick <- reactiveVal(NULL)
+  editing_override <- reactiveVal(NULL)  # Track override for current editing session
+
+  # Helper function to cycle through categories
+  cycle_category <- function(current) {
+    if (is.null(current)) current <- NA
+    cycle <- c("extraction", "prompt", "formatting")
+    if (is.na(current) || !(current %in% cycle)) {
+      return("extraction")
+    }
+    next_idx <- which(cycle == current) + 1
+    if (next_idx > length(cycle)) next_idx <- 1
+    cycle[next_idx]
+  }
 
   # Semantic matching using GloVe embeddings
   detect_brick_type <- function(text) {
@@ -931,17 +955,35 @@ server <- function(input, output, session) {
       editing_brick(brick_num)
       updateTextAreaInput(session, "modal_task_input", value = brick$text)
 
-      # Update modal button
+      # Show the brick's currently saved type (don't auto-detect on open)
+      editing_override(brick$type)
+
+      # Update modal button with current type (show Unknown if empty)
+      is_empty <- nchar(trimws(brick$text)) == 0
+      display_type <- if (is_empty) "grey" else brick$type
+      type_label <- switch(display_type,
+        extraction = "Extract",
+        prompt = "Transform",
+        formatting = "Format",
+        "Unknown")
+      type_color <- switch(display_type,
+        extraction = "#2196F3",
+        prompt = "#4CAF50",
+        formatting = "#FFC107",
+        "#999999")
       runjs(sprintf("
         var btn = document.getElementById('modal_update_brick');
+        var typeLabel = document.getElementById('brick_type_label');
         btn.className = 'modal-update-brick %s';
-      ", brick$type))
+        typeLabel.textContent = '%s';
+        typeLabel.style.color = '%s';
+      ", display_type, type_label, type_color))
 
       session$sendCustomMessage("showModal", list())
     }
   })
 
-  # Update modal button color as user types
+  # Update category as user types (continuous auto-detect)
   observeEvent(input$modal_task_input, {
     if (!is.null(editing_brick())) {
       new_text <- trimws(input$modal_task_input)
@@ -951,10 +993,61 @@ server <- function(input, output, session) {
         detect_brick_type(new_text)
       }
 
+      # Auto-detect category and update the button
+      editing_override(new_type)
+
+      # Update type label (show Unknown if text is empty)
+      is_empty <- nchar(new_text) == 0
+      display_type <- if (is_empty) "grey" else new_type
+      type_label <- switch(display_type,
+        extraction = "Extract",
+        prompt = "Transform",
+        formatting = "Format",
+        "Unknown")
+      type_color <- switch(display_type,
+        extraction = "#2196F3",
+        prompt = "#4CAF50",
+        formatting = "#FFC107",
+        "#999999")
       runjs(sprintf("
         var btn = document.getElementById('modal_update_brick');
+        var typeLabel = document.getElementById('brick_type_label');
         btn.className = 'modal-update-brick %s';
-      ", new_type))
+        typeLabel.textContent = '%s';
+        typeLabel.style.color = '%s';
+      ", display_type, type_label, type_color))
+    }
+  })
+
+  # Handle category cycling (click on modal button) - only if text is not empty
+  observeEvent(input$cycle_category_click, {
+    if (!is.null(editing_brick())) {
+      # Only allow cycling if text is not empty
+      new_text <- trimws(input$modal_task_input)
+      if (nchar(new_text) > 0) {
+        current_override <- editing_override()
+        next_override <- cycle_category(current_override)
+        editing_override(next_override)
+
+        # Update modal button color and type label
+        type_label <- switch(next_override,
+          extraction = "Extract",
+          prompt = "Transform",
+          formatting = "Format",
+          "Unknown")
+        type_color <- switch(next_override,
+          extraction = "#2196F3",
+          prompt = "#4CAF50",
+          formatting = "#FFC107",
+          "#999999")
+        runjs(sprintf("
+          var btn = document.getElementById('modal_update_brick');
+          var typeLabel = document.getElementById('brick_type_label');
+          btn.className = 'modal-update-brick %s';
+          typeLabel.textContent = '%s';
+          typeLabel.style.color = '%s';
+        ", next_override, type_label, type_color))
+      }
     }
   })
 
@@ -964,11 +1057,11 @@ server <- function(input, output, session) {
     if (!is.null(brick_num)) {
       new_text <- trimws(input$modal_task_input)
 
-      # If empty, turn back to grey
+      # Use the overridden category if set, otherwise auto-detect
       new_type <- if (nchar(new_text) == 0) {
         "grey"
       } else {
-        detect_brick_type(new_text)
+        editing_override()  # Use the currently selected/overridden type
       }
 
       # Update brick in pool by finding it by number property
