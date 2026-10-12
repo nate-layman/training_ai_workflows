@@ -55,3 +55,9 @@ shinylive::export("app", "docs")
 ```
 
 This will create a static version of the app in the `docs` folder that can be deployed to GitHub Pages or any static hosting service.
+
+## License
+
+Copyright 2025-2026 Nathan Layman.
+
+Licensed under the [Apache License, Version 2.0](LICENSE). The [NOTICE](NOTICE) file carries the author attribution. Under Section 4(d) of the license, anyone who redistributes this software or a derivative work must keep that attribution. To cite the project, use [CITATION.cff](CITATION.cff).

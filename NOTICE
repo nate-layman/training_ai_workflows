@@ -1,0 +1,14 @@
+AI Workflow Builder
+Copyright 2025-2026 Nathan Layman
+
+Author: Nathan Layman, University of Idaho
+https://github.com/nate-layman/training_ai_workflows
+
+This file is an attribution notice under Section 4(d) of the Apache
+License, Version 2.0. Any redistribution of this work, or of a derivative
+work, must include a readable copy of the attribution notices above.
+
+Third-party files bundled in this repository keep their own licenses and
+are not covered by this notice. In particular, glove.6B.100d.txt (Stanford
+GloVe word vectors) and english-ewt-ud-2.5-191206.udpipe (a UDPipe model)
+are distributed under their original terms.

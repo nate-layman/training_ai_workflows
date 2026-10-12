@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "AI Workflow Builder"
+type: software
+date-released: 2026-10-12
+license: Apache-2.0
+repository-code: "https://github.com/nate-layman/training_ai_workflows"
+authors:
+  - family-names: Layman
+    given-names: Nathan
+    affiliation: "University of Idaho"
+abstract: >-
+  An interactive visual interface for research administrators to build and compose AI workflows using a brick metaphor.
